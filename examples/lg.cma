@@ -1,0 +1,28 @@
+loadc 0
+loadc 1
+loadc 13
+loada 3
+loadc 1
+le
+jumpz 11
+loadc -1
+storea 1
+
+pop
+jump 26
+loada 3
+loada 2
+geq
+jumpz 26
+loada 1
+loadc 1
+add
+storea 1
+pop
+loadc 2
+loada 2
+mul
+storea 2
+pop
+jump 11
+halt
