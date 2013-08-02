@@ -60,7 +60,7 @@ showUsage _ = do
       exec <- getProgName
       let header = "Usage: " ++ exec ++ " [options] [FILE]\n" ++
             "Load and run CMa instructions from FILE or, if FILE omitted,\n" ++
-            "start an interactive command-line interpretter."
+            "start an interactive command-line interpreter."
       putStrLn $ usageInfo header options
       exitSuccess
       
