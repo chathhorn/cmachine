@@ -34,7 +34,7 @@ data CMaState c = CMaState
       }
 
 instance Show c => Show (CMaState c) where
-      show s = showRegs s ++ 
+      show s = showRegs s ++  "\n" ++
             show (dumpStack s) ++ "\n" ++ 
             show (dumpData s) ++ "\n" ++
             show (dumpCode s)
@@ -100,7 +100,7 @@ resizeData sz' s = s
 
 clearData :: CMaState c -> CMaState c
 clearData s = s 
-      { dataSeg = amap (\_ -> 0) $ dataSeg s
+      { dataSeg = amap (const 0) $ dataSeg s
       , regs = Regs 0 0 (snd $ bounds $ dataSeg s) 0 0
       , status = OK -- TODO
       }
@@ -162,7 +162,7 @@ getDecoder = CMachine $ \s -> (s, Just $ decoder s)
 newtype CMachine c a = CMachine {runCMachine :: CMaState c -> (CMaState c, Maybe a)}
 
 instance Monad (CMachine c) where
-      m >>= k = CMachine $ \s -> let (s', r) = (runCMachine m s) in
+      m >>= k = CMachine $ \s -> let (s', r) = runCMachine m s in
             case r of
                   Just a -> runCMachine (k a) s'
                   Nothing -> (s', Nothing)
@@ -170,7 +170,7 @@ instance Monad (CMachine c) where
       return a = CMachine $ \s -> (s, Just a)
 
 instance Functor (CMachine c) where
-      fmap f m = f <$> m
+      fmap f m = m >>= return . f
 
 --- Memory ---
 

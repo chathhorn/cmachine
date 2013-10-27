@@ -55,7 +55,7 @@ cma0 = mapSnd (lift . pushi)
 -- Parsers for CMa instructions of 1 integer argument.
 cma1 :: [(String, CMaParser ())]
 cma1 = mapSnd (\c -> do
-      i <- p_int 
+      i <- pInt 
       lift $ pushi (c i))
       [ ("alloc", Alloc)
       , ("enter", Enter)
@@ -76,8 +76,8 @@ cma1 = mapSnd (\c -> do
 -- Parsers for CMa instructions of 2 integer arguments.
 cma2 :: [(String, CMaParser ())]
 cma2 = mapSnd (\c -> do 
-      i <- p_int
-      j <- p_int 
+      i <- pInt
+      j <- pInt 
       lift $ pushi (c i j))
       [ ("loadr", LoadRN)
       , ("slide", Slide)
@@ -89,32 +89,32 @@ cmd :: [(String, CMaParser Cmd)]
 cmd = [ (":step", lift step >> return Step)
       , (":execute", return Exec)
       , (":clear", (
-            p_reserved "code" >>
+            pReserved "code" >>
             return ClearCode) 
-      <|> (p_reserved "data" >>
+      <|> (pReserved "data" >>
             return ClearData)
-      <|> (p_reserved "watches" >>
+      <|> (pReserved "watches" >>
             return ClearWatches)
       <|> return Clear
       )
       , (":toggle", (
-            p_reserved "stack" >>
+            pReserved "stack" >>
             return ToggleStack) 
-      <|> (p_reserved "data" >>
+      <|> (pReserved "data" >>
             return ToggleData)
-      <|> (p_reserved "code" >>
+      <|> (pReserved "code" >>
             return ToggleCode)
       )
       , (":watch", do 
-            n <- p_int 
-            i <- p_int 
+            n <- pInt 
+            i <- pInt 
             return $ Watch n i
       )
       , (":quit", return Quit)
       , (":help", return Help)
       , (":pushi", cmaParser)
-      , (":resize", ResizeData <$> p_int)
-      , (":load", LoadFile <$> p_filePath)
+      , (":resize", ResizeData <$> pInt)
+      , (":load", LoadFile <$> pFilePath)
       ]
 
 mapSnd :: (a -> b) -> [(c, a)] -> [(c, b)]
@@ -146,24 +146,24 @@ def = LanguageDef
 
 lexer = makeTokenParser def
 
-p_reserved :: String -> CMaParser ()
-p_reserved = reserved lexer
+pReserved :: String -> CMaParser ()
+pReserved = reserved lexer
 
-p_int :: CMaParser Int
-p_int = fromInteger <$> integer lexer
+pInt :: CMaParser Int
+pInt = fromInteger <$> integer lexer
 
-p_whiteSpace :: CMaParser ()
-p_whiteSpace = whiteSpace lexer
+pWhiteSpace :: CMaParser ()
+pWhiteSpace = whiteSpace lexer
 
-p_filePath :: CMaParser String
-p_filePath = many1 (noneOf ":*+?<>")
+pFilePath :: CMaParser String
+pFilePath = many1 (noneOf ":*+?<>")
 
-p_eol :: CMaParser ()
-p_eol = void (char '\n' <|> (char '\r' >> option '\n' (char '\n')))
+pEol :: CMaParser ()
+pEol = void (char '\n' <|> (char '\r' >> option '\n' (char '\n')))
 
 type CMaParser c = ParsecT String () (CMachine CMa) c
 
-makeParsers = map $ \(t, c) -> try ((p_reserved t >> c) <* optional p_eol)
+makeParsers = map $ \(t, c) -> try ((pReserved t >> c) <* optional pEol)
 
 foldParsers = foldr (<|>) mzero
 
@@ -176,15 +176,15 @@ cmaParsers = map (>> return InsLoad) $
 
 cmdParsers = makeParsers cmd
 
-cmaParser = p_whiteSpace >> foldParsers cmaParsers
+cmaParser = pWhiteSpace >> foldParsers cmaParsers
 
 cmasList, cmdsList :: [String]
 cmasList = map fst cma0 ++ map fst cma1 ++ map fst cma2 
 cmdsList = map fst cmd
 
 fileParser :: CMaParser [Cmd]
-fileParser = p_whiteSpace >> many1 (foldParsers cmaParsers)
+fileParser = pWhiteSpace >> many1 (foldParsers cmaParsers)
 
 cliParser :: CMaParser [Cmd]
-cliParser = p_whiteSpace >> many1 (foldParsers $ andStep cmaParsers ++ cmdParsers)
+cliParser = pWhiteSpace >> many1 (foldParsers $ andStep cmaParsers ++ cmdParsers)
 

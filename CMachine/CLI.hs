@@ -96,7 +96,7 @@ cli settings  =
                         outputStrLn "*** Clearing code and data segments."
                         loop settings {state = clear st', watches = []}
                   ClearCode -> do
-                        outputStrLn "*** Clearing data segment and registers."
+                        outputStrLn "*** Clearing code segment and registers."
                         loop settings {state = clearCode st'}
                   ClearData -> do
                         outputStrLn "*** Clearing data segment and registers."
@@ -138,7 +138,6 @@ cli settings  =
                         outputStrLn "*** Help you?"
                         loop settings
                   Quit -> return ()
-                  c -> do
-                        outputStrLn $ "Got: " ++ show c
-                        loop settings
+                  LoadFileResult _ ->
+                        loop settings {state = st'}
 
