@@ -260,10 +260,13 @@ segFaultD = setStatus SegFaultD >> die
 stackOverflow :: CMachine c ()
 stackOverflow = setStatus StackOverflow >> die
 
+decodeFail :: CMachine c ()
+decodeFail = setStatus DecodeFail >> die
+
 decode :: c -> CMachine c ()
 decode c = do
       d <- getDecoder
-      fromMaybe (setStatus DecodeFail) (d c)
+      fromMaybe decodeFail $ d c
 
 step :: CMachine c ()
 step = fetch >>= decode
